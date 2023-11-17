@@ -23,18 +23,27 @@ def parse_xml_content(content):
                 first_table_data[key] = value
 
     # Extract information from the second table
-    second_table_data = {"Quantities": [], "Products": [], "Specification": [], "Value Dutch guilders": [], "Value Indian guilders": []}
+    second_table_data = {"Quantities": [], "Units": [], "Products": [], "Specification": [], "Value Dutch guilders": [], "Value Indian guilders": []}
     second_table = soup.find_all('table')
     if second_table:
         second_table = second_table[1]
         for row in second_table.find_all('tr', class_='odd'):
             columns = row.find_all('td')
-            second_table_data["Quantities"].append(columns[0].text.strip())
-            second_table_data["Products"].append(columns[1].text.strip())
-            second_table_data["Specification"].append(columns[2].text.strip())
-            second_table_data["Value Dutch guilders"].append(columns[3].text.strip())
-            second_table_data["Value Indian guilders"].append(columns[4].text.strip())
+            quantities_colspan = int(columns[0].get('colspan', 1))
+        
+            # Handle colspan for 'Quantities'
+            if quantities_colspan == 2:
+                second_table_data["Quantities"].append(columns[0].text.strip())
+                second_table_data["Units"].append(columns[1].text.strip())
+            else:
+                second_table_data["Quantities"].append(columns[0].text.strip())
+                second_table_data["Units"].append("")  # Add an empty string for 'Units'
 
+            # Continue parsing other columns
+            second_table_data["Products"].append(columns[quantities_colspan + 1].text.strip())
+            second_table_data["Specification"].append(columns[quantities_colspan + 2].text.strip())
+            second_table_data["Value Dutch guilders"].append(columns[quantities_colspan + 3].text.strip())
+            second_table_data["Value Indian guilders"].append(columns[quantities_colspan + 4].text.strip())
     # Create the final dictionary entry
     entry = {
         'Number': first_table_data.get('Number', ''),
@@ -51,6 +60,7 @@ def parse_xml_content(content):
         'Remarks Voyage': first_table_data.get('Remarks Voyage', ''),
         'Voyage in DAS': first_table_data.get('Voyage in DAS', ''),
         'Quantities': second_table_data["Quantities"],
+        'Units': second_table_data["Units"],
         'Products': second_table_data["Products"],
         'Specification': second_table_data["Specification"],
         'Value Dutch guilders': second_table_data["Value Dutch guilders"],
@@ -72,7 +82,7 @@ def process_all_xml_files(directory_path):
         bgb_voyages.append(parsed_data)
 
     # Write the results to a file named "bgb_json.json"
-    with open('bgb_json.json', 'w', encoding='utf-8') as output_file:
+    with open('bgb_json5.json', 'w', encoding='utf-8') as output_file:
         json.dump({"bgb_voyages": bgb_voyages}, output_file, indent=2)
 
 # Example usage with a directory path
