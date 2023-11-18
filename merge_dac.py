@@ -8,7 +8,7 @@ df1 = pd.read_csv(file1)
 df2 = pd.read_csv(file2)
 
 # merge the dataframes based on "JourneylogID"
-result = pd.merge(df1, df2, on='JourneylogID')
+result = pd.merge(df1, df2, on='JourneylogID',how='left')
 
 # Save the result to a new CSV file
 result.to_csv('/users/axel22/documents/trade project/data harmonisation/copies of raw data csv files/jlogfinal+migrants.csv', index=False)
